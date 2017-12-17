@@ -18,7 +18,6 @@ class SportStatsPipeline(object):
         self.myCsv.writerow(list(item.fields.keys()))
 
     def process_item(self, item, spider):
-        print item.keys()
         if len(item.keys()) == 0:
             return
 

@@ -10,8 +10,14 @@ import scrapy
 
 class SportStatsItem(scrapy.Item):
     # define the fields for your item here like:
+    date = scrapy.Field()
     time = scrapy.Field()
     team_home = scrapy.Field()
     team_away = scrapy.Field()
-    score = scrapy.Field()
-    extra = scrapy.Field()
+    goals_home = scrapy.Field()
+    goals_away = scrapy.Field()
+    local = scrapy.Field()
+    away = scrapy.Field()
+    players = scrapy.Field()
+    events = scrapy.Field()
+    season = scrapy.Field()
