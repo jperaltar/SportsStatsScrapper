@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import scrapy
 import time
 
@@ -17,14 +19,45 @@ class MisMarcadoresSpider(scrapy.Spider):
 
     # EVENTS CONSTANTS
     # Dictionary to translate event icons names to final event names
-    substitution_event_type = 'Player Substitution'
-    match_events = {
-        "soccer-ball": "Goal",
-        "y-card": "Yellow Card",
-        "r-card": "Red Card",
-        "ry-card": "Second Yellow Card",
-        "penalty-missed": "Penalty Missed",
-        "substitution-in": substitution_event_type
+    SUBSTITUTION_EVENT_TYPE = 'player_substitution'
+    MATCH_EVENTS = {
+        "soccer-ball": "goal",
+        "y-card": "yellow_card",
+        "r-card": "red_card",
+        "ry-card": "second_yellow_card",
+        "penalty-missed": "penalty_missed",
+        "substitution-in": SUBSTITUTION_EVENT_TYPE
+    }
+
+    # SATISTICS CONSTANTS
+    MATCH_STATS = {
+        "Paradas": "saves",
+        "Córneres": "corners",
+        "Remates": "shots",
+        "Remates fuera": "shots_out",
+        "Posesión de balón": "ball_control",
+        "Faltas": "fouls",
+        "Fueras de juego": "offsides",
+        "Remates rechazados": "deflected_shots",
+        "Remates a puerta": "shots_on_goal",
+        "Tarjetas amarillas": "yellow_cards",
+        "Tarjetas rojas": "red_cards"
+    }
+
+    # SATISTICS CONSTANTS
+    MATCH_INDIVIDUAL_STATS = {
+        "Asistencias": "assists",
+        "Faltas cometidas": "fouls",
+        "% Acierto en pases": "pass_success",
+        "Pases totales": "total_passes",
+        "Tarjetas amarillas": "yellow_cards",
+        "Remates": "shots",
+        "Faltas recibidas": "received_fouls",
+        "Fueras de juego": "offsides",
+        "Rechaces": "deflections",
+        "Goles": "goals",
+        "Tarjetas rojas": "red_cards",
+        "Remates a puerta": "shots_on_goal"
     }
 
     def __init__(self, sport=""):
@@ -61,12 +94,12 @@ class MisMarcadoresSpider(scrapy.Spider):
         event = {}
         icon_box = event_html.css(".icon-box")
         event["type"] = icon_box.xpath("@class").extract()[0].split()[1]
-        if event["type"] not in self.match_events:
+        if event["type"] not in self.MATCH_EVENTS:
             return None
 
-        event["type"] = self.match_events[event["type"]]
+        event["type"] = self.MATCH_EVENTS[event["type"]]
         event["time"] = event_html.css(".time-box, .time-box-wide").xpath('string(.)').extract()[0]
-        if event["type"] == self.substitution_event_type:
+        if event["type"] == self.SUBSTITUTION_EVENT_TYPE:
             event["in"] = event_html.css(".substitution-in-name").xpath('string(.)').extract()[0]
             event["out"] = event_html.css(".substitution-out-name").xpath('string(.)').extract()[0]
             return event
@@ -97,7 +130,7 @@ class MisMarcadoresSpider(scrapy.Spider):
     @return [List] [{
         "name": 'Name of the player',
         "team": 'Name of the team the player belongs to',
-        "away": 'Statistics of the player [Object]... "stat_name": "stat_val"'
+        "stats": 'Statistics of the player [Object]... "stat_name": "stat_val"'
     }]
     """
     def parse_individual_stat(self, stat, headers):
@@ -132,6 +165,10 @@ class MisMarcadoresSpider(scrapy.Spider):
         player_list = html.css(path)
         headers = html.css(headers_path).xpath('@title').extract()
 
+        # Individual stats name translation
+        for i, header in enumerate(headers):
+            headers[i] = self.MATCH_INDIVIDUAL_STATS[header.encode('utf-8')]
+
         item["players"] = []
         for player in player_list:
             player_stat = self.parse_individual_stat(player, headers)
@@ -154,6 +191,12 @@ class MisMarcadoresSpider(scrapy.Spider):
         away_stat_path = "td.fr > div:last-child"
 
         stat_name = stat.css(stat_name_path).xpath('string(.)').extract()[0]
+        try:
+            # Translation of the name of the statistic
+            stat_name = self.MATCH_STATS[stat_name.encode('utf-8')]
+        except KeyError:
+            return
+
         local_stats[stat_name] = stat.css(home_stat_path).xpath('string(.)').extract()[0]
         away_stats[stat_name] = stat.css(away_stat_path).xpath('string(.)').extract()[0]
 
