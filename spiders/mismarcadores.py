@@ -57,7 +57,8 @@ class MisMarcadoresSpider(scrapy.Spider):
         "Rechaces": "deflections",
         "Goles": "goals",
         "Tarjetas rojas": "red_cards",
-        "Remates a puerta": "shots_on_goal"
+        "Remates a puerta": "shots_on_goal",
+        "Tiros Libres": "free_throws"
     }
 
     def __init__(self, sport=""):
@@ -165,9 +166,12 @@ class MisMarcadoresSpider(scrapy.Spider):
         player_list = html.css(path)
         headers = html.css(headers_path).xpath('@title').extract()
 
-        # Individual stats name translation
-        for i, header in enumerate(headers):
-            headers[i] = self.MATCH_INDIVIDUAL_STATS[header.encode('utf-8')]
+        try:
+            # Individual stats name translation
+            for i, header in enumerate(headers):
+                headers[i] = self.MATCH_INDIVIDUAL_STATS[header.encode('utf-8')]
+        except KeyError:
+            return
 
         item["players"] = []
         for player in player_list:
