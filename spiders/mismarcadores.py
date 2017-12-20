@@ -228,13 +228,17 @@ class MisMarcadoresSpider(scrapy.Spider):
         away_team_name = ".tname-away a"
         score_path = "#event_detail_current_result span.scoreboard"
         date_path = "#utime"
+        competition_day_path = "#detcon > table a"
 
         date = html.css(date_path).xpath('string(.)').extract()[0]
+        competition_day = html.css(competition_day_path).xpath('string(.)').extract()[0]
 
         item["team_home"] = html.css(local_team_name).xpath('string(.)').extract()[0]
         item["team_away"] = html.css(away_team_name).xpath('string(.)').extract()[0]
         item["goals_home"] = html.css(score_path)[0].xpath('string(.)').extract()[0]
         item["goals_away"] = html.css(score_path)[1].xpath('string(.)').extract()[0]
+        if len(competition_day.split(" - ")) > 1:
+            item["competition_day"] = competition_day.split(" - ")[1]
         item["date"] = date.split(" ")[0]
         item["time"] = date.split(" ")[1]
 

@@ -21,3 +21,4 @@ class SportStatsItem(scrapy.Item):
     players = scrapy.Field()
     events = scrapy.Field()
     season = scrapy.Field()
+    competition_day = scrapy.Field()
